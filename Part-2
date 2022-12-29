@@ -1,9 +1,28 @@
-Static generation = Pre-generate a page with the required data during the build time by using the getStaticProps function which is capable to run the server side code. Hence when the app is deployed on the server, the pre-generated pages are cached on the server.
+Static Site Generation (SSG) = Pre-generate a page with the required data by using the getStaticProps function which executes during the build time of the application and is capable to run the server side code and perform data-fetch operation. Hence when the app is deployed on the server, the pre-generated pages are cached/stored on the server.
 
 When we use the getStaticProps function then it is an indication to NextJs that a particular page should be pregenrated and it should be pre-populated with  some specific data So, write the server side code in the getStaticProps function. This async function can only be written and exported from the components which exists in the pages folder and not from a regular react component
 
 The code written in the getStaticProps function never comes on the client side and hence the credentials used in there are safe to exist.
 
+It may be noted that NextJs pre-renders all the pages by default, but this behavior can be supressed. By adding getStaticProps function to the page component, it is intentionally made clear to the NextJs that a certain page should be pre-generated.
+
+When getStaticProps is added to the page component then the page pre-generation and its deployment happens as follows:
+
+1. Programmer will run the "npm run build" in order to build the application. This will execute the getStaticProps function which will run the server side code, fetches the data from a data-source and thus populate the props object.
+
+2. Now render the component using the data ie. by using the pre-populated props object from the above step and evaluating the react component.
+
+3. Deploying these Data-Populated, Pre-rendered pages on the server.
+
+Drawbacks of SSG:-
+Since data fetching operation from a data source, using the getStaticProps function happens during the build process at the development machine, the pages deployed on the server will carry stale data if the data gets updated in the data-source. The deployed pages thus shows outdated data everytime.
+
+This can be prevented if getStaticProps function again runs on the actual server after the pages are deployed and thus fetching the updated data and populating the pages. This feature is known as Incremental Static Regeneration (ISR).
+
+ISR:- To make the getStaticProps function execute on the server side in order to fetch the fresh data, provide the 'revalidate' key in the object returned from getStaticProps function that takes the number of seconds as its value. Now when a request comes for a page having the revalidate key in its getStaticProps function, that page populated with the stale data will be served for this very first request but, the timer for regeneration has started and as soon as the number of seconds are elapsed, the getStaticProps will re-execute, fetches the fresh data and populate the page. Now this new page will replace the existing old page in server memory. It may be noted that user has wait for the pre-set seconds to elapse in order to get the page with fresh data, and hence if he keeps on reloading the page while the timer is running, he will keep on getting the stale page until the revalidate-time is complete from the moment the very first request was recorded.
+
+Hence getStaticProps not only runs during the build process but can be made to run on actual server as well.
+-------------------------------------------------------------------------------------------------------------------------------------------
 When the page should be re-generated at every incoming request OR/AND when there is the need to access the request object reaching the server, then getServerSideProps are used.
 
 This method is invoked at the server after the deployment. This method returns a similar object as that of getStaticProps and hence will populate the props of the page-component accordingly.
