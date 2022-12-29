@@ -1,0 +1,105 @@
+NextJs performs server side rendering, ie. React component is pre-rendered on the server.
+Helps to perform File based routing as the routes are configured depending upon the folder structure containing different files.
+Integrate backend code in the same application as the frontend application.
+-------------------------------------------------------------------------------------------------------------------------------------------
+npx-create-next-app 
+
+/ -> index.js will run
+/news -> news.js present in the root folder or the index.js file present in the news folder will run
+
+The public folder doesn't contain index.html file
+to start the development server use, npm run dev
+-------------------------------------------------------------------------------------------------------------------------------------------
+--Creating Dynamic Pages(with parameters)
+If file name is kept like [fileName].js then the identifier "fileName" is dynamic and can serve various route requests.
+
+--/ -> will render index.js
+--/news -> will render news.js
+--/news/remainingPath1 -> will render fileName.js
+--/news/remainingPath2 -> will render fileName.js
+
+The Dynamic file can be kept inside the folder just for varying nested route workflow. Generally the file inside the folder is named as index.js, but in order to fulfil the dynamic naming convention the wrapping folder can have the dynamic name and the file inside that can be named as index.js
+
+--[newsId].js
+
+will do the same function as below:
+
+--[newsId]
+----index.js 
+-------------------------------------------------------------------------------------------------------------------------------------------
+The value for the varying remainingPath(that helps to load this dynamic component file) can be accessed using the useRouter hook as:
+
+import {useRouter} from 'next/router'
+const router = useRouter();
+router.query.identifierUsedForFileName
+
+In the above the file is saved with the name "[identifierUsedForFileName].js"
+-------------------------------------------------------------------------------------------------------------------------------------------
+Catch All Routes:
+If the dynamic url segment like the product-id varies along with the number of url segments, such that the values for these segments are also dynamic then we can use catch all routes.
+
+For eg- If there should be loaded the same component for all the below routes:
+localhost:3000/blog/blogId
+localhost:3000/blog/blogId/releaseMonth/releaseYear
+localhost:3000/blog/summer/latestBlog
+
+In the above the same blog component has to be loaded if 
+someone enters a blogId,
+someone needs a blog-post released in a specific month and year,
+someone needs to see the latestBlog of summer season.
+
+From above as the number of dynamic segmenets in the url after the path (localhost:3000/blog/) are varying along with their values, hence they can be caught inside the blog component using the "slug".
+
+Just name the file name as [...identifier].js (or maybe a folder named as [...identifier] and index.js file inside it), then inside the component the router.query will result into a property named as identifier which will be an array containing the values for these dynamic segments as a comma separated list.
+
+router.query.identifier will give the following output in the above three cases:
+["blogId"]
+["blogId", "releaseMonth", "releaseYear"]
+["summer", "latestBlog"]
+-------------------------------------------------------------------------------------------------------------------------------------------
+use Link tag to create clickable links on the page as:
+
+import Link from 'next/link'
+
+<Link href="absolute-path">Text</Link>
+-------------------------------------------------------------------------------------------------------------------------------------------
+The value for href in the Link can be set using the object syntax as well:
+<Link href={`products/${productId.toString()}`}>{`Product - ${productId.toString()}`}</Link>
+
+The above string format can be converted to object syntax as:
+<Link href={{
+    pathname: 'products/[productId]',
+    query: productId.toString()
+  }}>
+  {`Product - ${productId.toString()}`}
+</Link>
+
+Hence from above, the object syntax:
+
+{
+  pathname: '[dynamicSegmentA]/[dynamicSegmentB]/[dynamicSegmentC]', 
+  query: {dynamicSegmentA: valueA, dynamicSegmentB: valueB, dynamicSegmentC: valueC }
+}
+
+is eqivalent to the string syntax as:
+
+`${dynamicSegmentA.toString()}/${dynamicSegmentB.toString()}/${dynamicSegmentC.toString()}`
+
+The above string and object syntax can be used in router.push() method as well in order to navigate programatically.
+-------------------------------------------------------------------------------------------------------------------------------------------
+The page can be navigated to a different route programaticaly instead of using Link component with the help of push function available on the object returned from the useRouter hook.
+
+push() will push this page on the top of stack of other pages.
+
+import {useRouter} from 'next/router'
+const router = useRouter();
+router.push(`/${some-path}`);
+-------------------------------------------------------------------------------------------------------------------------------------------
+The custom 404 page can be made in the application by creating 404.js file in the pages folder, such that the component exported from this file will be rendered when user visits some unexpected path.
+-------------------------------------------------------------------------------------------------------------------------------------------
+NextJs pre-renders the page and sends back the response to the client for the requested page (which is the pre-rendered content and hence HTML can be seen in the "View Page Source"), such that the initial-Data is already populated on the requested page (which is needed for SEO). Once it reaches the client, Nextjs sends the whole javascript of the application to the client known as Hydration. Now the Javascript/React takes over and the interactive features of the application are enabled.
+
+It may be noted that this pre-rendered and pre-populated page is only served by the NextJs for the very first page request. For the later page routes React/Javascript is responsible and hence the React scripts running on the client side are responsible for further pages.
+-------------------------------------------------------------------------------------------------------------------------------------------
+For providing a wrapping component such as <Layout> to all the components and preventing the repitition, then  add this wrapping component to _app.js file around the generic <Component />
+
