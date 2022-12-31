@@ -1,0 +1,25 @@
+When the page should be re-generated at every incoming request OR/AND when there is the need to access the request object reaching the server, then getServerSideProps are used.
+
+This method is invoked at the server after the deployment. This method returns a similar object as that of getStaticProps and hence will populate the props of the page-component accordingly.
+
+The context object received as the parameter in the getServerSideProps has properties namely: req, res, params
+
+There is no need to provide the getStaticPaths function along with the getServerSideProps in case of dynamic page-component file, as there is no pre-generation of page-instances, instead the pages are generated JIT, when the request is received.
+
+By default NextJs always pre-generates and caches all the pages on the server, but not when we provide getServerSideProps. Hence providing the getStaticProps or even omitting it will stil makes the page to be pre-generated.
+
+Client-side data fetching combined with static page regeneration:
+Provide the API Endpoint data fetching logic in the getStaticProps and inside page-component as well, so that the initial pre-generated page contains the data, and later on after the page hydration the client-side data fetching logic will come into play.
+
+We can insert the essential tags required inside the head tag of the pre-generated page, served by the server using the <Head> Component provided by the NextJs. Whichever child tags we provide inside the Head Component, they will be injected under the head tag of the page.
+
+<Head>
+  <title>Next Application</title>
+  <meta name="description" content="Description to be shown under the page-link made available in search results" />
+</Head>
+
+MyApp component will be rendered by the NextJs for every page-component when it has to be loaded. The Component prop received in the MyApp is the page-component.
+
+_document.js is used to customize the entire HTML document. This file is not present by default.
+
+Image component provided by NextJs creates various image versions optimized in terms of image-file-size for various device-sizes JIT when the request is received. This image version will be cached for future requests.

@@ -25,7 +25,7 @@ The Dynamic file can be kept inside the folder just for varying nested route wor
 will do the same function as below:
 
 --[newsId]
-----index.js 
+----index.js
 -------------------------------------------------------------------------------------------------------------------------------------------
 The value for the varying remainingPath(that helps to load this dynamic component file) can be accessed using the useRouter hook as:
 
@@ -69,7 +69,7 @@ The value for href in the Link can be set using the object syntax as well:
 The above string format can be converted to object syntax as:
 <Link href={{
     pathname: 'products/[productId]',
-    query: productId.toString()
+    query: {productId: productId.toString()}
   }}>
   {`Product - ${productId.toString()}`}
 </Link>

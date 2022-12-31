@@ -1,0 +1,80 @@
+Static Site Generation (SSG) = Pre-generate a page with the required data by using the getStaticProps function which executes during the build time of the application and is capable to run the server side code and perform data-fetch operation. Hence when the app is deployed on the server, the pre-generated pages are cached/stored on the server.
+
+When we use the getStaticProps function then it is an indication to NextJs that a particular page should be pregenrated and it should be pre-populated with  some specific data So, write the server side code in the getStaticProps function. This async function can only be written and exported from the components which exists in the pages folder and not from a regular react component
+
+The code written in the getStaticProps function never comes on the client side and hence the credentials used in there are safe to exist.
+
+It may be noted that NextJs pre-renders all the pages by default, but this behavior can be supressed. By adding getStaticProps function to the page component, it is intentionally made clear to the NextJs that a certain page should be pre-generated.
+
+When getStaticProps is added to the page component then the page pre-generation and its deployment happens as follows:
+
+1. Programmer will run the "npm run build" in order to build the application. This will execute the getStaticProps function which will run the server side code, fetches the data from a data-source and thus populate the props object.
+
+2. Now render the component using the data ie. by using the pre-populated props object from the above step and evaluating the react component.
+
+3. Deploying these Data-Populated, Pre-rendered pages on the server.
+
+Drawbacks of SSG:-
+Since data fetching operation from a data source, using the getStaticProps function happens during the build process at the development machine, the pages deployed on the server will carry stale data if the data gets updated in the data-source. The deployed pages thus shows outdated data everytime.
+
+This can be prevented if getStaticProps function again runs on the actual server after the pages are deployed and thus fetching the updated data and populating the pages. This feature is known as Incremental Static Regeneration (ISR).
+
+ISR:- To make the getStaticProps function execute on the server side in order to fetch the fresh data, provide the 'revalidate' key in the object returned from getStaticProps function that takes the number of seconds as its value. Now when a request comes for a page having the revalidate key in its getStaticProps function, that page populated with the stale data will be served for this very first request but, the timer for regeneration has started and as soon as the number of seconds are elapsed, the getStaticProps will re-execute, fetches the fresh data and populate the page. Now this new page will replace the existing old page in server memory. It may be noted that user has wait for the pre-set seconds to elapse in order to get the page with fresh data, and hence if he keeps on reloading the page while the timer is running, he will keep on getting the stale page until the revalidate-time is complete from the moment the very first request was recorded.
+
+Hence getStaticProps not only runs during the build process but can be made to run on actual server as well.
+
+Configuration options for getStaticProps:-
+
+The other keys returned from getStaticprops function are:
+1. notFound = If the getStaticProps function returns the object having notFound key set to true, then the 404 page will be rendered on screen for the associated route. This is due to the reason that during the build process the getStaticProps function will run and if it returns the object having notFound key set to true, then instead of rendering the Component written in the same file, it will render the 404 page onto screen. This behavior might be required if post the data fetching process in the GSP function, the data is empty, and hence 404 is to be rendered to the user.
+
+2. redirect object = If the GSP function returns an object having the redirect key equal to an object having the destination ket set to a route in string format then instead of rendering the page component writen above the GSP function the control will move towards the Page component which is associated with the specified route.
+
+If we need the dynamic url segment for the page inside the getStaticProps function, in order to fetch the page specific data so that it can get populated into the props object, then this can be done using the context parameter that the GSP recieves. The context object has the params object whose keys will correspond to the dynamic url paths of the page. For eg: If the ProductDetail page having the URL: localhost:3000/products/123, where 123 is the id of the page and the productId=123 is needed to fetch the details of product with id=123, then it will be available as:
+
+const productId = context.params.productId;
+
+It may be noted that the fileName for showing this Specific page is [productId].js (or alternatively an index.js file inside the [productId] folder)
+
+From the above it is concluded that when GSP function is added to a page-component then it is an instruction to NextJs to pregenerate a page.
+-------------------------------------------------------------------------------------------------------------------------------------------
+
+If a file name is kept dynamic for eg. [productId].js (or alternatively an index.js file inside the [productId] folder), then these pages are not pre-generated and hence are served by the server JIT, when the request comes, and hence we are able to see the page for possible values of productId no-matter how irrelevant the dynamic productId you try to visit, there will never be an error.
+But if GSP function is added to the above dynamic file then it is an instruction to NextJs to pregenrate all the possible variants of the page during the build time for all the possible dynamic url segment. Hence there has to be provided additional information to NextJs about the possible values of dynamic URL through getStaticPaths function so that all the possible variants of the page are pre-generated during build time and cached on server.
+
+The signature of getStaticPaths should be as follows:
+
+export const getStaticPaths = async () => {
+  return {
+    paths: [
+      { params: { productId: 'p1' } },
+      { params: { productId: 'p2' } },
+      ...
+      ...
+      { params: { productId: 'p10' } },
+    ],
+    fallback: false,
+  };
+}; 
+
+Now the getStaticProps will run for the number of times equal to the number of paths mentioned in getStaticPaths function in order to pre-generate and cache that many pages during the build time. The getStaticPaths function should be used only in page-component files and not in regular react components.
+
+There has to be provided the fallback key in the object returned from the getStaticPaths function that accepts a boolean value.
+
+fallback values: 
+1. When fallback is set to false then it means we have listed all the possible dynamic values for the URL without leaving any.
+
+2. When fallback is set to true then it is the lenient behavior. Hence we specify only frequently/most visited dynamic url values and leaving the rarely/less visited pages. Doing this way, NextJs will pre-generate the pages only for mentioned URL values, while the pages for remaining routes are JIT generated on the server as:
+
+NextJs will serve the empty-template of the page component immediately when the route for less popular page is visited. At this moment data is not available on the page, so provide a loading spinner otherwise accessing the properties from the data will give error. Now as soon as the data is fetched, NextJs will populate the template.
+
+3. fallback can also be set to a string value of 'blocking', where the less frequent pages are also skipped. But this time the there won't be served empty template. Instead client has to wait for the server to respond back with the fully data-populated page, thus there is no need to provide a loading state. 
+
+Hence getStaticPaths function tells NextJs which concrete instances of the page should be pre-generated for a dynamic page file.
+-------------------------------------------------------------------------------------------------------------------------------------------
+Trying to visit a url in case of dynamic url segment:
+1. If the fallback is set to false, then during the build process pages for all the mentioned paths are already prepared, along with 404 page. So visiting an invalid productId will render the 404 page.
+
+2. If fallback is set to true, then the server will try to look into data-source the concerned data for the id through getStaticProps function, so provide the Spinner in the component body for the loading state. Now as the data won't exist in the source so getStaticProps will lead to an error. This can be handled by setting the 'notFound' key to true in the return statement of getStaticProps using an if-check, so that 404 page will be shown.
+
+It should always be kept in mind that setting fallback to true may lead to loading, successful data-fetch, fail data-fetch states, so these cases should be handled properly.
