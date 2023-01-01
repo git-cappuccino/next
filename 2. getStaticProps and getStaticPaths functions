@@ -39,8 +39,8 @@ It may be noted that the fileName for showing this Specific page is [productId].
 From the above it is concluded that when GSP function is added to a page-component then it is an instruction to NextJs to pregenerate a page.
 -------------------------------------------------------------------------------------------------------------------------------------------
 
-If a file name is kept dynamic for eg. [productId].js (or alternatively an index.js file inside the [productId] folder), then these pages are not pre-generated and hence are served by the server JIT, when the request comes, and hence we are able to see the page for possible values of productId no-matter how irrelevant the dynamic productId you try to visit, there will never be an error.
-But if GSP function is added to the above dynamic file then it is an instruction to NextJs to pregenrate all the possible variants of the page during the build time for all the possible dynamic url segment. Hence there has to be provided additional information to NextJs about the possible values of dynamic URL through getStaticPaths function so that all the possible variants of the page are pre-generated during build time and cached on server.
+If a file name is kept dynamic for eg. [productId].js (or alternatively an index.js file inside the [productId] folder), then these pages are not pre-generated and hence are served by the server JIT, when the request comes, and hence we are able to see the page for all the possible values of productId no-matter how irrelevant the dynamic productId you try to visit, there will never be an error.
+But if GSP function is added to the above dynamic file then it is an instruction to NextJs to pregenrate all the possible instances of the page during the build time for all the possible dynamic url segment. Hence there has to be provided additional information to NextJs about the possible values of dynamic URL through getStaticPaths function so that all the possible instances of the page are pre-generated during build time and are cached on server.
 
 The signature of getStaticPaths should be as follows:
 
@@ -72,9 +72,9 @@ NextJs will serve the empty-template of the page component immediately when the 
 
 Hence getStaticPaths function tells NextJs which concrete instances of the page should be pre-generated for a dynamic page file.
 -------------------------------------------------------------------------------------------------------------------------------------------
-Trying to visit a url in case of dynamic url segment:
+Trying to visit an invalid url in case of dynamic url segment:
 1. If the fallback is set to false, then during the build process pages for all the mentioned paths are already prepared, along with 404 page. So visiting an invalid productId will render the 404 page.
 
 2. If fallback is set to true, then the server will try to look into data-source the concerned data for the id through getStaticProps function, so provide the Spinner in the component body for the loading state. Now as the data won't exist in the source so getStaticProps will lead to an error. This can be handled by setting the 'notFound' key to true in the return statement of getStaticProps using an if-check, so that 404 page will be shown.
 
-It should always be kept in mind that setting fallback to true may lead to loading, successful data-fetch, fail data-fetch states, so these cases should be handled properly.
+It should always be kept in mind that setting fallback to true may lead to loading, successful data-fetch, failed data-fetch states, so these cases should be handled properly.

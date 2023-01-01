@@ -1,10 +1,15 @@
-When the page should be re-generated at every incoming request OR/AND when there is the need to access the request object reaching the server, then getServerSideProps are used.
+Server side rendering - It is needed for the below listed reasons:
+1. When the page should be pre-rendered for every incoming request at the server and pre-generated pages are not capable enough to fulfil the requirements. For eg. If the data to be populated in the page component changes too frequently such that getStaticProps even along with revalidate field will be useless.
+2. When there is the need to access the request object reaching the server in order to access the cookie or header data.
+3. When there is a need to manipulate the response to be sent back.
 
-This method is invoked at the server after the deployment. This method returns a similar object as that of getStaticProps and hence will populate the props of the page-component accordingly.
+getServerSideProps is a function which helps to achieve all the above.
 
-The context object received as the parameter in the getServerSideProps has properties namely: req, res, params
+This method is invoked only at the server after the deployment for every incoming request at the server. It is not executed during the build time. This method returns a similar object as that of getStaticProps and hence will populate the props of the page-component accordingly. In a file there can either exist getStaticPaths function or getServerSideProps function, but both cannot exist at te same time.
 
-There is no need to provide the getStaticPaths function along with the getServerSideProps in case of dynamic page-component file, as there is no pre-generation of page-instances, instead the pages are generated JIT, when the request is received.
+getServerSideProps function has access to the incoming request object, outgoing response object and the params object through the context parameter. The context object received as the parameter in the getServerSideProps has properties namely: req, res, params. This function returns an object with fields namely: props, notFound, redirect, but cannot have revalidate key.
+
+There is no need to provide the getStaticPaths function along with the getServerSideProps in case of dynamic page-component file, as there is no pre-generation of page-instances, instead the pages are rendered JIT, when the request is received.
 
 By default NextJs always pre-generates and caches all the pages on the server, but not when we provide getServerSideProps. Hence providing the getStaticProps or even omitting it will stil makes the page to be pre-generated.
 
